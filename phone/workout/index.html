@@ -10,23 +10,23 @@
   </head>
   <body>
     <header class="app-header">
-      <h1>Musculation</h1>
+      <h1 id="app-title">Musculation</h1>
       <span id="status" class="status">Démarrage…</span>
     </header>
 
     <main>
       <section class="templates">
-        <h2>Séances types</h2>
+        <h2 id="templates-title">Séances types</h2>
         <div class="template-grid">
-          <button type="button" data-template="full">Corps entier<br><small>6 exercices</small></button>
-          <button type="button" data-template="upper">Haut du corps<br><small>5 exercices</small></button>
-          <button type="button" data-template="core">Gainage<br><small>5 exercices</small></button>
+          <button type="button" data-template="full" id="template-full">Corps entier<br><small>6 exercices</small></button>
+          <button type="button" data-template="upper" id="template-upper">Haut du corps<br><small>5 exercices</small></button>
+          <button type="button" data-template="core" id="template-core">Gainage<br><small>5 exercices</small></button>
         </div>
       </section>
 
       <section class="program">
         <div class="program-header">
-          <h2>Programme</h2>
+          <h2 id="program-title">Programme</h2>
           <span id="program-summary" class="hint">0 exercice</span>
         </div>
         <div id="exercise-list" class="exercise-list"></div>
@@ -39,19 +39,19 @@
       </section>
 
       <section class="stats">
-        <h2>Séances</h2>
+        <h2 id="stats-title">Séances</h2>
         <div class="stat-grid">
           <div class="stat">
             <span id="today-count" class="stat-value">0</span>
-            <span class="stat-label">aujourd'hui</span>
+            <span class="stat-label" id="stat-today-label">aujourd'hui</span>
           </div>
           <div class="stat">
             <span id="week-count" class="stat-value">0</span>
-            <span class="stat-label">7 derniers jours</span>
+            <span class="stat-label" id="stat-week-label">7 derniers jours</span>
           </div>
           <div class="stat">
             <span id="week-sets" class="stat-value">0</span>
-            <span class="stat-label">séries (7 j)</span>
+            <span class="stat-label" id="stat-week-sets-label">séries (7 j)</span>
           </div>
         </div>
         <p id="last-session" class="hint">Aucune séance pour le moment.</p>

@@ -17,8 +17,10 @@ import {
   encodeStop,
   decodeEvent,
 } from './protocol.js';
+import { detectLocale, getStrings } from './translations.js';
 
 const STORAGE_KEY = 'workout';
+const S = getStrings(detectLocale());
 
 const gm = createGMPlugin();
 
@@ -38,26 +40,26 @@ const lastSessionEl = document.querySelector('#last-session');
 // { name, mode, target, sets, rest }.
 const TEMPLATES = {
   full: [
-    { name: 'Squats', mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
-    { name: 'Pompes', mode: MODE_REPS, target: 10, sets: 3, rest: 60 },
-    { name: 'Fentes', mode: MODE_REPS, target: 10, sets: 3, rest: 60 },
-    { name: 'Rowing', mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
-    { name: 'Gainage', mode: MODE_TIME, target: 45, sets: 3, rest: 45 },
-    { name: 'Pont fessier', mode: MODE_REPS, target: 15, sets: 3, rest: 60 },
+    { name: S.exerciseSquats, mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
+    { name: S.exercisePushups, mode: MODE_REPS, target: 10, sets: 3, rest: 60 },
+    { name: S.exerciseLunges, mode: MODE_REPS, target: 10, sets: 3, rest: 60 },
+    { name: S.exerciseRow, mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
+    { name: S.exercisePlank, mode: MODE_TIME, target: 45, sets: 3, rest: 45 },
+    { name: S.exerciseGluteBridge, mode: MODE_REPS, target: 15, sets: 3, rest: 60 },
   ],
   upper: [
-    { name: 'Pompes', mode: MODE_REPS, target: 12, sets: 3, rest: 60 },
-    { name: 'Dips', mode: MODE_REPS, target: 8, sets: 3, rest: 75 },
-    { name: 'Rowing', mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
-    { name: 'Elevations', mode: MODE_REPS, target: 12, sets: 3, rest: 60 },
-    { name: 'Planche', mode: MODE_TIME, target: 45, sets: 3, rest: 45 },
+    { name: S.exercisePushups, mode: MODE_REPS, target: 12, sets: 3, rest: 60 },
+    { name: S.exerciseDips, mode: MODE_REPS, target: 8, sets: 3, rest: 75 },
+    { name: S.exerciseRow, mode: MODE_REPS, target: 12, sets: 3, rest: 75 },
+    { name: S.exerciseShoulderRaise, mode: MODE_REPS, target: 12, sets: 3, rest: 60 },
+    { name: S.exerciseFrontPlank, mode: MODE_TIME, target: 45, sets: 3, rest: 45 },
   ],
   core: [
-    { name: 'Gainage', mode: MODE_TIME, target: 45, sets: 3, rest: 40 },
-    { name: 'Planche laterale', mode: MODE_TIME, target: 30, sets: 3, rest: 40 },
-    { name: 'Crunch', mode: MODE_REPS, target: 20, sets: 3, rest: 40 },
-    { name: 'Releve de jambes', mode: MODE_REPS, target: 15, sets: 3, rest: 45 },
-    { name: 'Superman', mode: MODE_TIME, target: 30, sets: 3, rest: 40 },
+    { name: S.exercisePlank, mode: MODE_TIME, target: 45, sets: 3, rest: 40 },
+    { name: S.exerciseSidePlank, mode: MODE_TIME, target: 30, sets: 3, rest: 40 },
+    { name: S.exerciseCrunch, mode: MODE_REPS, target: 20, sets: 3, rest: 40 },
+    { name: S.exerciseLegRaise, mode: MODE_REPS, target: 15, sets: 3, rest: 45 },
+    { name: S.exerciseSuperman, mode: MODE_TIME, target: 30, sets: 3, rest: 40 },
   ],
 };
 
@@ -92,7 +94,7 @@ function sanitizeExercise(raw) {
   const mode = raw.mode === MODE_TIME ? MODE_TIME : MODE_REPS;
   const targetMax = mode === MODE_TIME ? MAX_TIME_SEC : MAX_REPS;
   return {
-    name: String(raw.name || 'Exercice').slice(0, NAME_MAX),
+    name: String(raw.name || S.defaultExercise).slice(0, NAME_MAX),
     mode,
     target: clamp(Math.round(Number(raw.target) || 1), 1, targetMax),
     sets: clamp(Math.round(Number(raw.sets) || 1), 1, MAX_SETS),
@@ -126,7 +128,7 @@ function renderExercises() {
     nameInput.type = 'text';
     nameInput.maxLength = NAME_MAX;
     nameInput.value = exercise.name;
-    nameInput.placeholder = 'Nom de l\'exercice';
+    nameInput.placeholder = S.placeholderName;
     nameInput.disabled = !connected;
     nameInput.addEventListener('input', () => {
       exercise.name = nameInput.value;
@@ -150,11 +152,11 @@ function renderExercises() {
     const modeField = document.createElement('div');
     modeField.className = 'field';
     const modeLabel = document.createElement('label');
-    modeLabel.textContent = 'Type';
+    modeLabel.textContent = S.labelType;
     const modeSelect = document.createElement('select');
     modeSelect.disabled = !connected;
     modeSelect.innerHTML =
-      '<option value="reps">Répétitions</option><option value="time">Durée</option>';
+      `<option value="reps">${S.optionReps}</option><option value="time">${S.optionTime}</option>`;
     modeSelect.value = exercise.mode === MODE_TIME ? 'time' : 'reps';
     modeSelect.addEventListener('change', () => {
       exercise.mode = modeSelect.value === 'time' ? MODE_TIME : MODE_REPS;
@@ -167,7 +169,7 @@ function renderExercises() {
     const targetField = document.createElement('div');
     targetField.className = 'field';
     const targetLabel = document.createElement('label');
-    targetLabel.textContent = isTime ? 'Secondes' : 'Répétitions';
+    targetLabel.textContent = isTime ? S.labelSeconds : S.labelReps;
     const targetInput = document.createElement('input');
     targetInput.type = 'number';
     targetInput.min = '1';
@@ -189,7 +191,7 @@ function renderExercises() {
     const setsField = document.createElement('div');
     setsField.className = 'field';
     const setsLabel = document.createElement('label');
-    setsLabel.textContent = 'Séries';
+    setsLabel.textContent = S.labelSets;
     const setsInput = document.createElement('input');
     setsInput.type = 'number';
     setsInput.min = '1';
@@ -207,7 +209,7 @@ function renderExercises() {
     const restField = document.createElement('div');
     restField.className = 'field';
     const restLabel = document.createElement('label');
-    restLabel.textContent = 'Repos (s)';
+    restLabel.textContent = S.labelRest;
     const restInput = document.createElement('input');
     restInput.type = 'number';
     restInput.min = '0';
@@ -230,7 +232,7 @@ function renderExercises() {
 
 function renderSummary() {
   const totalSets = exercises.reduce((sum, exercise) => sum + exercise.sets, 0);
-  summaryEl.textContent = `${exercises.length} exercice${exercises.length > 1 ? 's' : ''} · ${totalSets} série${totalSets > 1 ? 's' : ''}`;
+  summaryEl.textContent = S.summary(exercises.length, totalSets);
 }
 
 function renderStats() {
@@ -254,6 +256,32 @@ function renderStats() {
   weekSetsEl.textContent = String(weekSets);
 }
 
+function applyStrings() {
+  document.title = S.appTitle;
+  document.documentElement.lang = detectLocale();
+  const set = (id, text) => {
+    const el = document.querySelector(`#${id}`);
+    if (el) el.textContent = text;
+  };
+  set('app-title', S.appTitle);
+  set('templates-title', S.sectionTemplates);
+  set('program-title', S.sectionProgram);
+  set('stats-title', S.sectionStats);
+  set('add-exercise', S.addExercise);
+  set('stop-button', S.stopButton);
+  set('program-summary', S.summary(0, 0));
+  set('last-session', S.noSession);
+  set('stat-today-label', S.statToday);
+  set('stat-week-label', S.statWeek);
+  set('stat-week-sets-label', S.statWeekSets);
+  const templateFull = document.querySelector('#template-full');
+  const templateUpper = document.querySelector('#template-upper');
+  const templateCore = document.querySelector('#template-core');
+  if (templateFull) templateFull.innerHTML = `${S.templateFull}<br><small>${S.templateExercises(6)}</small>`;
+  if (templateUpper) templateUpper.innerHTML = `${S.templateUpper}<br><small>${S.templateExercises(5)}</small>`;
+  if (templateCore) templateCore.innerHTML = `${S.templateCore}<br><small>${S.templateExercises(5)}</small>`;
+}
+
 function renderControls() {
   const busy = running;
   addButton.disabled = !connected || exercises.length >= MAX_EXERCISES;
@@ -262,7 +290,7 @@ function renderControls() {
   });
   startButton.disabled = !connected || exercises.length === 0;
   stopButton.disabled = !connected || !running;
-  startButton.textContent = paused ? 'Reprendre' : running ? 'Pause' : 'Démarrer';
+  startButton.textContent = paused ? S.resumeButton : running ? S.pauseButton : S.startButton;
 }
 
 async function sendProgram() {
@@ -304,7 +332,7 @@ templateButtons.forEach((button) => {
 
 addButton.addEventListener('click', () => {
   if (exercises.length >= MAX_EXERCISES) return;
-  exercises.push(sanitizeExercise({ name: 'Nouvel exercice', mode: MODE_REPS, target: 12, sets: 3, rest: 60 }));
+  exercises.push(sanitizeExercise({ name: S.newExercise, mode: MODE_REPS, target: 12, sets: 3, rest: 60 }));
   void onProgramChanged();
 });
 
@@ -345,8 +373,11 @@ const offMessages = gm.plugin.onMessage((message) => {
     renderStats();
     renderControls();
     const minutes = Math.round(decoded.seconds / 60);
-    lastSessionEl.textContent =
-      `Dernière séance : ${formatTime(new Date().toISOString())} — ${decoded.sets} séries, ${minutes} min.`;
+    lastSessionEl.textContent = S.lastSession(
+      formatTime(new Date().toISOString()),
+      decoded.sets,
+      minutes,
+    );
   }
 });
 
@@ -354,20 +385,21 @@ async function start() {
   try {
     await gm.ready();
     await loadState();
+    applyStrings();
     renderExercises();
     renderSummary();
     renderStats();
     renderControls();
     const info = await gm.device.getInfo();
     connected = Boolean(info.connected);
-    setStatus(connected ? 'Lunettes connectées' : 'Lunettes déconnectées', connected ? 'ready' : 'error');
+    setStatus(connected ? S.statusConnected : S.statusDisconnected, connected ? 'ready' : 'error');
     renderExercises();
     renderControls();
     await sendProgram();
     await gm.device.subscribeEvents(['connection']);
     gm.device.onConnection((event) => {
       connected = Boolean(event.connected);
-      setStatus(connected ? 'Lunettes connectées' : 'Lunettes déconnectées', connected ? 'ready' : 'error');
+      setStatus(connected ? S.statusConnected : S.statusDisconnected, connected ? 'ready' : 'error');
       renderExercises();
       renderControls();
       if (connected) void sendProgram();

@@ -74,12 +74,25 @@ typedef struct {
     uint32_t session_elapsed_ms;
     uint32_t refresh_elapsed_ms;
     uint16_t sets_done;
-    uint8_t language; /* 0 = French (default), 1 = English */
+    uint8_t language; /* 0=fr 1=en 2=es 3=it 4=de 5=zh-CN */
 } workout_t;
 
-#define L(fr_str, en_str) (wo.language != 0U ? (en_str) : (fr_str))
+#define L(fr_str, en_str, es_str, it_str, de_str, zh_str) \
+    (wo.language == 1U ? (en_str) : wo.language == 2U ? (es_str) : \
+     wo.language == 3U ? (it_str) : wo.language == 4U ? (de_str) : \
+     wo.language == 5U ? (zh_str) : (fr_str))
 
 static workout_t wo;
+
+static uint8_t workout_detect_language(const char *locale)
+{
+    if (locale[0] == 'e' && locale[1] == 'n') return 1U;
+    if (locale[0] == 'e' && locale[1] == 's') return 2U;
+    if (locale[0] == 'i' && locale[1] == 't') return 3U;
+    if (locale[0] == 'd' && locale[1] == 'e') return 4U;
+    if (locale[0] == 'z' && locale[1] == 'h') return 5U;
+    return 0U;
+}
 
 #define number gm_plugin_lvgl_style_number
 #define color gm_plugin_lvgl_style_color
@@ -148,72 +161,88 @@ static void refresh_display(void)
     char target[16];
 
     if (wo.count == 0U) {
-        wo.ui->label_set_text(wo.ex_label, L("Aucun programme", "No program"));
+        wo.ui->label_set_text(wo.ex_label, L("Aucun programme", "No program", "Sin programa", "Nessun programma", "Kein Programm", "无训练计划"));
         wo.ui->label_set_text(wo.series_label, "");
         wo.ui->label_set_text(wo.target_label, "");
         wo.ui->label_set_text(wo.info_label,
             L("Choisis une seance sur le telephone",
-              "Pick a workout on the phone"));
+              "Pick a workout on the phone",
+              "Elige una sesión en el teléfono",
+              "Scegli un allenamento sul telefono",
+              "Wähle ein Training am Telefon",
+              "请在手机上选择训练"));
         wo.ui->label_set_text(wo.hint_label, "");
         return;
     }
 
     if (wo.done) {
-        wo.ui->label_set_text(wo.ex_label, L("Termine", "Done"));
+        wo.ui->label_set_text(wo.ex_label, L("Termine", "Done", "Terminado", "Finito", "Fertig", "完成"));
         set_style(wo.ex_label, GM_PLUGIN_LVGL_STYLE_TEXT_COLOR, color(0xFF));
         wo.ui->label_set_text(wo.series_label, "");
         wo.ui->label_set_text(wo.target_label, "");
-        wo.libc->snprintf(text, sizeof(text), L("Series : %u", "Sets: %u"),
+        wo.libc->snprintf(text, sizeof(text), L("Series : %u", "Sets: %u", "Series: %u", "Serie: %u", "Sätze: %u", "组：%u"),
                           (unsigned int)wo.sets_done);
         wo.ui->label_set_text(wo.info_label, text);
         wo.ui->label_set_text(wo.hint_label,
-            L("Bouton : recommencer", "Button: restart"));
+            L("Bouton : recommencer", "Button: restart", "Botón: reiniciar", "Pulsante: riavvia", "Taste: neu starten", "按钮：重新开始"));
         return;
     }
 
     if (!wo.running) {
         wo.ui->label_set_text(wo.ex_label,
             wo.exercises[0].name[0] != '\0'
-                ? wo.exercises[0].name : L("Pret", "Ready"));
+                ? wo.exercises[0].name : L("Pret", "Ready", "Listo", "Pronto", "Bereit", "准备"));
         set_style(wo.ex_label, GM_PLUGIN_LVGL_STYLE_TEXT_COLOR, color(0xC0));
         format_target(target, sizeof(target), &wo.exercises[0]);
         wo.libc->snprintf(text, sizeof(text), L("%u series x %s",
-                          "%u sets x %s"),
+                          "%u sets x %s",
+                          "%u series x %s",
+                          "%u serie x %s",
+                          "%u Sätze x %s",
+                          "%u 组 x %s"),
                           (unsigned int)wo.exercises[0].sets, target);
         wo.ui->label_set_text(wo.series_label, text);
         wo.ui->label_set_text(wo.target_label, "");
         wo.libc->snprintf(text, sizeof(text), L("Exercices : %u",
-                          "Exercises: %u"),
+                          "Exercises: %u",
+                          "Ejercicios: %u",
+                          "Esercizi: %u",
+                          "Übungen: %u",
+                          "动作：%u"),
                           (unsigned int)wo.count);
         wo.ui->label_set_text(wo.info_label, text);
         wo.ui->label_set_text(wo.hint_label,
-            L("Bouton : demarrer", "Button: start"));
+            L("Bouton : demarrer", "Button: start", "Botón: iniciar", "Pulsante: avvia", "Taste: Start", "按钮：开始"));
         return;
     }
 
     if (wo.paused) {
         set_style(wo.ex_label, GM_PLUGIN_LVGL_STYLE_TEXT_COLOR, color(0xD0));
-        wo.ui->label_set_text(wo.series_label, L("En pause", "Paused"));
+        wo.ui->label_set_text(wo.series_label, L("En pause", "Paused", "En pausa", "In pausa", "Pausiert", "暂停"));
         wo.ui->label_set_text(wo.info_label, "");
         wo.ui->label_set_text(wo.hint_label,
-            L("Bouton : reprendre", "Button: resume"));
+            L("Bouton : reprendre", "Button: resume", "Botón: reanudar", "Pulsante: riprendi", "Taste: Weiter", "按钮：继续"));
         return;
     }
 
     if (wo.resting) {
         uint32_t seconds = (wo.phase_remaining_ms + 999U) / 1000U;
-        wo.ui->label_set_text(wo.ex_label, L("Repos", "Rest"));
+        wo.ui->label_set_text(wo.ex_label, L("Repos", "Rest", "Descanso", "Riposo", "Pause", "休息"));
         set_style(wo.ex_label, GM_PLUGIN_LVGL_STYLE_TEXT_COLOR, color(0xC0));
         wo.libc->snprintf(text, sizeof(text), "%u:%02u",
                           (unsigned int)(seconds / 60U),
                           (unsigned int)(seconds % 60U));
         wo.ui->label_set_text(wo.target_label, text);
         wo.libc->snprintf(text, sizeof(text), L("Suivant : %s",
-                          "Next: %s"),
+                          "Next: %s",
+                          "Siguiente: %s",
+                          "Prossimo: %s",
+                          "Nächste: %s",
+                          "下一个：%s"),
                           exercise_name(wo.ex_index));
         wo.ui->label_set_text(wo.info_label, text);
         wo.ui->label_set_text(wo.hint_label,
-            L("Bouton : passer le repos", "Button: skip rest"));
+            L("Bouton : passer le repos", "Button: skip rest", "Botón: saltar descanso", "Pulsante: salta riposo", "Taste: Pause überspringen", "按钮：跳过休息"));
         return;
     }
 
@@ -223,7 +252,11 @@ static void refresh_display(void)
         wo.ui->label_set_text(wo.ex_label, ex->name);
         wo.libc->snprintf(text, sizeof(text),
                           L("Exercice %u/%u    Serie %u/%u",
-                            "Exercise %u/%u    Set %u/%u"),
+                            "Exercise %u/%u    Set %u/%u",
+                            "Ejercicio %u/%u    Serie %u/%u",
+                            "Esercizio %u/%u    Serie %u/%u",
+                            "Übung %u/%u    Satz %u/%u",
+                            "动作 %u/%u    组 %u/%u"),
                           (unsigned int)(wo.ex_index + 1U), (unsigned int)wo.count,
                           (unsigned int)wo.set_index, (unsigned int)ex->sets);
         wo.ui->label_set_text(wo.series_label, text);
@@ -235,15 +268,15 @@ static void refresh_display(void)
                               (unsigned int)(seconds % 60U));
             wo.ui->label_set_text(wo.target_label, text);
             wo.ui->label_set_text(wo.info_label,
-                L("Maintiens la position", "Hold the position"));
+                L("Maintiens la position", "Hold the position", "Mantén la posición", "Mantieni la posizione", "Halte die Position", "保持姿势"));
         } else {
             wo.libc->snprintf(text, sizeof(text), "%u", (unsigned int)ex->target);
             wo.ui->label_set_text(wo.target_label, text);
             wo.ui->label_set_text(wo.info_label,
-                L("repetitions", "repetitions"));
+                L("repetitions", "repetitions", "repeticiones", "ripetizioni", "Wiederholungen", "次数"));
         }
         wo.ui->label_set_text(wo.hint_label,
-            L("Bouton : valider", "Button: done"));
+            L("Bouton : valider", "Button: done", "Botón: validar", "Pulsante: conferma", "Taste: erledigt", "按钮：确认"));
     }
 }
 
@@ -449,9 +482,8 @@ static gm_plugin_result_t workout_start(void *context)
 
     wo.language = 0U;
     if (wo.host->locale_get != 0 &&
-        wo.host->locale_get(locale) == GM_PLUGIN_OK &&
-        locale[0] == 'e' && locale[1] == 'n')
-        wo.language = 1U;
+        wo.host->locale_get(locale) == GM_PLUGIN_OK)
+        wo.language = workout_detect_language(locale);
 
     if (wo.host->display_get_info(&display) != GM_PLUGIN_OK ||
         display.width <= SCREEN_MARGIN * 2U ||
@@ -468,7 +500,7 @@ static gm_plugin_result_t workout_start(void *context)
     wo.ui->obj_align(wo.screen, GM_PLUGIN_LVGL_ALIGN_CENTER, 0, 0);
     style_panel(wo.screen, 0x00, 0, 0);
 
-    wo.title_label = make_label(wo.screen, L("Muscu", "Workout"), 0x80);
+    wo.title_label = make_label(wo.screen, L("Muscu", "Workout", "Gimnasio", "Palestra", "Training", "健身"), 0x80);
     if (wo.title_label == 0) goto no_memory;
     wo.ui->obj_set_size(wo.title_label, display.width - SCREEN_MARGIN * 2U, 24);
     wo.ui->obj_align(wo.title_label, GM_PLUGIN_LVGL_ALIGN_TOP_MID, 0, 8);
