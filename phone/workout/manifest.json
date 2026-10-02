@@ -1,0 +1,23 @@
+{
+  "id": "com.dynag.workout.phone",
+  "name": "GM Workout",
+  "version": "1.0.0",
+  "entry": "index.html",
+  "bridgeVersion": "2.0",
+  "permissions": [
+    { "name": "storage", "required": true },
+    { "name": "device.info", "required": true },
+    { "name": "device.messaging", "required": true, "scope": { "channels": [22347, 22348] } },
+    { "name": "device.events", "required": false, "scope": { "types": ["connection"] } }
+  ],
+  "deviceRequirements": {
+    "preferredPluginId": "com.dynag.workout.glass",
+    "requiredPluginId": "com.dynag.workout.glass",
+    "minPluginVersion": "1",
+    "protocols": [
+      { "id": "gm.workout", "minVersion": "1.0" }
+    ]
+  },
+  "schemaVersion": 2,
+  "permissionPolicyVersion": 1
+}

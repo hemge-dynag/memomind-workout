@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#0b0e14">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>GM Workout</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Musculation</h1>
+      <span id="status" class="status">Démarrage…</span>
+    </header>
+
+    <main>
+      <section class="templates">
+        <h2>Séances types</h2>
+        <div class="template-grid">
+          <button type="button" data-template="full">Corps entier<br><small>6 exercices</small></button>
+          <button type="button" data-template="upper">Haut du corps<br><small>5 exercices</small></button>
+          <button type="button" data-template="core">Gainage<br><small>5 exercices</small></button>
+        </div>
+      </section>
+
+      <section class="program">
+        <div class="program-header">
+          <h2>Programme</h2>
+          <span id="program-summary" class="hint">0 exercice</span>
+        </div>
+        <div id="exercise-list" class="exercise-list"></div>
+        <button id="add-exercise" type="button" class="ghost">+ Ajouter un exercice</button>
+      </section>
+
+      <section class="controls">
+        <button id="start-button" class="primary">Démarrer</button>
+        <button id="stop-button">Arrêter</button>
+      </section>
+
+      <section class="stats">
+        <h2>Séances</h2>
+        <div class="stat-grid">
+          <div class="stat">
+            <span id="today-count" class="stat-value">0</span>
+            <span class="stat-label">aujourd'hui</span>
+          </div>
+          <div class="stat">
+            <span id="week-count" class="stat-value">0</span>
+            <span class="stat-label">7 derniers jours</span>
+          </div>
+          <div class="stat">
+            <span id="week-sets" class="stat-value">0</span>
+            <span class="stat-label">séries (7 j)</span>
+          </div>
+        </div>
+        <p id="last-session" class="hint">Aucune séance pour le moment.</p>
+      </section>
+    </main>
+
+    <script type="module" src="plugin.js"></script>
+  </body>
+</html>
